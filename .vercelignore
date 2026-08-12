@@ -1,17 +1,18 @@
-# Ignore standalone proctor Node.js server files (not serverless compatible)
+# Exclude ALL root-level files that Vercel might pick up as serverless functions
 server.js
 app.js
 tracker.js
 index.html
 styles.css
 
-# Ignore standalone-proctor directory entirely from Vercel deploy
+# Exclude entire directories not needed for the React frontend deploy
 standalone-proctor/
-
-# Ignore backend Python files
 backend/
-
-# Ignore local dev files
 .vscode/
+.pytest_cache/
+
+# Exclude build artifacts and databases
 *.db
 *.log
+*.pyc
+__pycache__/

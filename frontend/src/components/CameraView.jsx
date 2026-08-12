@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Camera, Eye, Zap, AlertTriangle, UserCheck, ShieldAlert } from 'lucide-react';
+import { EyeTracker } from '../utils/EyeTracker';
 
 export default function CameraView({ isDemoMode, activeSessionId, onMetricsUpdate }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [demoFrame, setDemoFrame] = useState(0);
+  const eyeTrackerRef = useRef(null);
 
   useEffect(() => {
     let animationFrameId;
@@ -27,6 +29,81 @@ export default function CameraView({ isDemoMode, activeSessionId, onMetricsUpdat
             videoRef.current.srcObject = stream;
             videoRef.current.play();
             setCameraActive(true);
+
+            // Initialize tracker
+            const tracker = new EyeTracker();
+            await tracker.initialize((progress) => console.log(progress));
+            eyeTrackerRef.current = tracker;
+
+            tracker.startTracking(videoRef.current, (processedData) => {
+               // Convert to standard metrics format for the dashboard
+               if (processedData.numFaces > 0) {
+                 const face = processedData.faces[0];
+                 const gazeDir = face.gaze.screenX < 0.4 ? "LEFT" : face.gaze.screenX > 0.6 ? "RIGHT" : face.gaze.screenY < 0.4 ? "UP" : face.gaze.screenY > 0.6 ? "DOWN" : "CENTER";
+                 
+                 let alertData = null;
+                 let eventData = null;
+                 
+                 if (!face.focus.focused || processedData.numFaces > 1) {
+                   const code = processedData.numFaces > 1 ? "MULTIPLE_FACES" : face.focus.code;
+                   const label = processedData.numFaces > 1 ? "Multiple Faces" : face.focus.status;
+                   const reason = processedData.numFaces > 1 ? `${processedData.numFaces} individuals detected.` : face.focus.reason;
+                   
+                   alertData = {
+                     status: code === "ATTENTION_REQUIRED" ? code : "CRITICAL_VIOLATION",
+                     label: label,
+                     level: code === "EYES_CLOSED" || code === "MULTIPLE_FACES" ? "high" : "medium"
+                   };
+                   
+                   eventData = {
+                     id: Date.now(),
+                     time: new Date().toLocaleTimeString(),
+                     type: code,
+                     severity: alertData.level,
+                     message: reason
+                   };
+                 } else {
+                   alertData = { status: "NORMAL", label: "Focused & Normal Behavior", level: "low" };
+                 }
+
+                 // Determine a dynamic focus score
+                 let score = face.focus.focused ? 95 - (Math.abs(face.headPose.yaw) * 10) : 40;
+                 if (processedData.numFaces > 1) score = 10;
+                 
+                 onMetricsUpdate({
+                   focus_score: Math.max(0, Math.min(100, score)),
+                   status: face.focus.focused ? "Highly Focused" : face.focus.status,
+                   gaze: gazeDir,
+                   head_pose: {
+                     yaw: (face.headPose.yaw * 90).toFixed(1), 
+                     pitch: (face.headPose.pitch * 90).toFixed(1), 
+                     roll: 0 
+                   },
+                   blink_rate: Math.round(face.blink.average * 20),
+                   eye_closed: face.blink.closed,
+                   face_count: processedData.numFaces,
+                   face_detected: true,
+                   alert: alertData,
+                   new_event: eventData
+                 });
+               } else {
+                 onMetricsUpdate({
+                   focus_score: 0,
+                   status: "No Face Detected",
+                   gaze: "UNKNOWN",
+                   face_count: 0,
+                   face_detected: false,
+                   alert: { status: "NO_FACE", label: "Candidate Missing", level: "high" },
+                   new_event: {
+                     id: Date.now(),
+                     time: new Date().toLocaleTimeString(),
+                     type: "NO_FACE",
+                     severity: "high",
+                     message: "No face detected in camera frame."
+                   }
+                 });
+               }
+            });
           }
         } catch (err) {
           console.warn("Webcam access warning:", err);
@@ -38,6 +115,7 @@ export default function CameraView({ isDemoMode, activeSessionId, onMetricsUpdat
 
     return () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (eyeTrackerRef.current) eyeTrackerRef.current.stopTracking();
     };
   }, [isDemoMode]);
 

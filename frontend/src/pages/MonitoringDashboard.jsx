@@ -287,6 +287,37 @@ export default function MonitoringDashboard({ isDemoMode, activeSessionId, setAc
                   isDemoMode={isDemoMode}
                   activeSessionId={activeSessionId}
                   onMetricsUpdate={(clientMetrics) => {
+                    // Update local metrics immediately for standalone client-side tracking
+                    setMetrics((prev) => ({
+                      ...prev,
+                      ...clientMetrics
+                    }));
+
+                    // Update live chart
+                    const timestampLabel = new Date().toLocaleTimeString();
+                    setChartData((prev) => {
+                      const updated = [...prev, { time: timestampLabel, score: clientMetrics.focus_score || 0 }];
+                      return updated.slice(-30);
+                    });
+
+                    // Handle alerts locally
+                    if (clientMetrics.new_event) {
+                      setEventsLog((prev) => [clientMetrics.new_event, ...prev]);
+                      setActiveModalAlert({
+                        alertInfo: clientMetrics.alert,
+                        newEvent: clientMetrics.new_event
+                      });
+                    } else if (clientMetrics.alert && clientMetrics.alert.status !== "NORMAL") {
+                       // Only show modal for critical/attention required if needed, or rely on normal alert banner
+                       if (clientMetrics.alert.level === "high") {
+                           setActiveModalAlert({
+                             alertInfo: clientMetrics.alert,
+                             newEvent: null
+                           });
+                       }
+                    }
+
+                    // (Optional) still send to backend if it's connected
                     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && !isDemoMode) {
                       wsRef.current.send(JSON.stringify({ ...clientMetrics, session_id: activeSessionId }));
                     }

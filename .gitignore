@@ -1,3 +1,18 @@
 node_modules/
 .DS_Store
 *.log
+.env
+.env.local
+.env.production
+
+# Build outputs — let Netlify/Vercel build fresh
+frontend/dist/
+frontend/.vite/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.db

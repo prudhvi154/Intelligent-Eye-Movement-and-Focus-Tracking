@@ -1,7 +1,7 @@
 import React from 'react';
 import { Eye, Shield, BarChart3, Settings, Play, Radio, Monitor, Zap, Volume2, VolumeX } from 'lucide-react';
 
-export default function Navbar({ activePage, setActivePage, isDemoMode, setIsDemoMode, activeSessionId }) {
+export default function Navbar({ activePage, setActivePage, isDemoMode, setIsDemoMode, activeSessionId, isAudioMuted, setIsAudioMuted }) {
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-slate-800/80 bg-[#0B0F19]/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

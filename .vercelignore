@@ -1,0 +1,17 @@
+# Ignore standalone proctor Node.js server files (not serverless compatible)
+server.js
+app.js
+tracker.js
+index.html
+styles.css
+
+# Ignore standalone-proctor directory entirely from Vercel deploy
+standalone-proctor/
+
+# Ignore backend Python files
+backend/
+
+# Ignore local dev files
+.vscode/
+*.db
+*.log

@@ -7,7 +7,7 @@ import AnalyticsDashboard from './pages/AnalyticsDashboard';
 
 export default function App() {
   const [activePage, setActivePage] = useState('landing'); // landing, setup, monitor, analytics
-  const [isDemoMode, setIsDemoMode] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState('EXAM-2026-001');
   const [isAudioMuted, setIsAudioMuted] = useState(false);
 

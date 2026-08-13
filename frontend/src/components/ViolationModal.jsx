@@ -44,8 +44,8 @@ export default function ViolationModal({ alertInfo, newEvent, isAudioMuted, togg
   }
 
   const isHighSeverity = alertInfo.level === "high" || (newEvent && newEvent.severity === "high");
-  const alertTitle = newEvent ? newEvent.event_type.replace(/_/g, ' ') : alertInfo.label;
-  const alertDescription = newEvent ? newEvent.description : alertInfo.message;
+  const alertTitle = newEvent ? (newEvent.event_type || newEvent.type || "").replace(/_/g, ' ') : alertInfo.label;
+  const alertDescription = newEvent ? (newEvent.description || newEvent.message) : alertInfo.message;
 
   useEffect(() => {
     if (!isAudioMuted) {

@@ -23,10 +23,10 @@ export default function EventTimeline({ events = [] }) {
               <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-amber-400">{ev.event_type}</span>
+                  <span className="font-bold text-amber-400">{ev.event_type || ev.type}</span>
                   <span className="text-[10px] text-slate-500">{ev.severity}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 font-sans mt-0.5">{ev.description}</p>
+                <p className="text-[11px] text-slate-400 font-sans mt-0.5">{ev.description || ev.message}</p>
               </div>
             </div>
           ))

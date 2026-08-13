@@ -125,10 +125,10 @@ export default function ReportExporter({ analytics, eventsLog, chartData }) {
               ]).map(e => `
                 <tr>
                   <td>${new Date().toLocaleTimeString()}</td>
-                  <td><strong>${e.event_type.replace(/_/g, ' ')}</strong></td>
+                  <td><strong>${(e.event_type || e.type || "").replace(/_/g, ' ')}</strong></td>
                   <td>${e.severity.toUpperCase()}</td>
                   <td>${Math.round((e.confidence || 0.9) * 100)}%</td>
-                  <td>${e.description}</td>
+                  <td>${e.description || e.message}</td>
                 </tr>
               `).join('')}
             </tbody>
